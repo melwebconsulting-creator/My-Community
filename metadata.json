@@ -1,0 +1,6 @@
+{
+  "name": "HANGOUT",
+  "description": "A cute social community, group chat & PANG FOREVER random task platform.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>HANGOUT ♡ Find your people. Create your space.</title>
+  <meta name="description" content="HANGOUT is a cozy, cute social community, group chat, and PANG FOREVER random challenge platform." />
+  <meta property="og:title" content="HANGOUT ♡ Find your people. Create your space." />
+  <meta property="og:description" content="A cute social community, group chat & PANG FOREVER random task platform." />
+  <meta property="og:image" content="./assets/logo/hangout_logo.jpg" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  
+  <!-- Google Fonts: Plus Jakarta Sans & Outfit for adorable, clean typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  
+  <!-- Font Awesome / Lucide-style Icon SVGs embedded via CSS / inline -->
+  <link rel="stylesheet" href="./style.css" />
+  
+  <!-- Supabase JS Client via Official CDN (browser standalone) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Canvas Confetti for task completion celebration -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+</head>
+<body class="theme-light">
+  <!-- Toast Notification Root Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- Optional Top Announcement Banner (Editable by Owner) -->
+  <div id="site-announcement-banner" class="announcement-banner">
+    <div class="banner-content">
+      <span class="banner-icon">🌸</span>
+      <span id="announcement-text">Welcome to HANGOUT! PANG FOREVER cozy missions are live ♡ Complete challenges and earn cute badges!</span>
+    </div>
+    <button id="btn-close-banner" class="btn-icon-subtle" title="Dismiss banner">&times;</button>
+  </div>
+
+  <!-- Main App Shell Grid -->
+  <div class="app-layout">
+    
+    <!-- Top Global Header Bar (Strict 3-zone contract) -->
+    <header class="app-topbar">
+      <!-- Zone 1: Single text element wordmark + cute mascot icon -->
+      <a href="#home" class="brand-link" id="brand-logo">
+        <img src="./assets/logo/hangout_logo.jpg" alt="HANGOUT Logo" class="brand-avatar-img" />
+        <span class="brand-wordmark">HANGOUT</span>
+      </a>
+
+      <!-- Zone 2: Search and Quick Switcher Bar -->
+      <div class="topbar-center-search">
+        <div class="search-input-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="global-search-input" placeholder="Search communities, missions, friends..." />
+        </div>
+      </div>
+
+      <!-- Zone 3: Actions (Theme, Notifications, Admin badge, Auth/Profile) -->
+      <div class="topbar-actions">
+        <!-- Theme Switcher (Light / Dark) -->
+        <button id="theme-toggle-btn" class="icon-button" title="Switch Theme">
+          <span class="theme-icon-light">☀️</span>
+          <span class="theme-icon-dark">🌙</span>
+        </button>
+
+        <!-- Supabase Connection Status Pill Button -->
+        <button id="btn-db-status" class="db-status-btn" title="Database Connection Status">
+          <span class="status-dot status-offline"></span>
+          <span class="status-label">Database</span>
+        </button>
+
+        <!-- Admin Dashboard Shield Button (Owner/Admin Only) -->
+        <button id="btn-admin-nav" class="admin-badge-btn hidden" title="Owner Admin Dashboard">
+          <span class="admin-icon">🛡️</span>
+          <span class="admin-label">Admin</span>
+          <span id="admin-unread-badge" class="badge-count hidden">0</span>
+        </button>
+
+        <!-- User Notifications Bell with live unread counter -->
+        <button id="btn-user-notifications" class="icon-button relative" title="Notifications">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span id="user-unread-badge" class="badge-count hidden">0</span>
+        </button>
+
+        <!-- Auth Button / User Profile Pill -->
+        <div id="topbar-auth-section">
+          <button id="btn-open-login" class="btn-primary-pill">Log In</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="app-body">
+      <!-- Desktop Left Sidebar Navigation -->
+      <aside class="app-sidebar" aria-label="Main Navigation">
+        <nav class="sidebar-nav">
+          <div class="nav-section-label">COMMUNITY</div>
+          <a href="#home" class="nav-item active" data-view="home">
+            <span class="nav-icon">🏡</span>
+            <span class="nav-text">Home</span>
+          </a>
+          <a href="#discover" class="nav-item" data-view="discover">
+            <span class="nav-icon">🧭</span>
+            <span class="nav-text">Discover</span>
+          </a>
+          <a href="#groups" class="nav-item" data-view="groups">
+            <span class="nav-icon">🍡</span>
+            <span class="nav-text">My Groups</span>
+          </a>
+          <a href="#community" class="nav-item" data-view="community">
+            <span class="nav-icon">💬</span>
+            <span class="nav-text">Cozy Feed</span>
+          </a>
+
+          <div class="nav-section-label">SPECIAL</div>
+          <a href="#pang" class="nav-item nav-item-highlight" data-view="pang">
+            <span class="nav-icon">♡</span>
+            <span class="nav-text">PANG FOREVER</span>
+            <span class="nav-subtag">Fun</span>
+          </a>
+          <a href="#avatar-studio" class="nav-item" data-view="avatar-studio">
+            <span class="nav-icon">🎨</span>
+            <span class="nav-text">Avatar Studio</span>
+          </a>
+
+          <div class="nav-section-label">FRIENDS &amp; DMs</div>
+          <a href="#messages" class="nav-item" data-view="messages">
+            <span class="nav-icon">💌</span>
+            <span class="nav-text">Direct Messages</span>
+            <span id="dm-unread-badge" class="badge-pill hidden">0</span>
+          </a>
+          <a href="#friends" class="nav-item" data-view="friends">
+            <span class="nav-icon">✨</span>
+            <span class="nav-text">Friends</span>
+            <span id="friends-pending-badge" class="badge-pill hidden">0</span>
+          </a>
+
+          <div class="nav-section-label">ACCOUNT</div>
+          <a href="#profile" class="nav-item" data-view="profile">
+            <span class="nav-icon">🧸</span>
+            <span class="nav-text">My Profile</span>
+          </a>
+          <a href="#settings" class="nav-item" data-view="settings">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-text">Settings</span>
+          </a>
+          <a href="#admin" class="nav-item admin-only-item hidden" data-view="admin">
+            <span class="nav-icon">👑</span>
+            <span class="nav-text">Admin Dashboard</span>
+          </a>
+        </nav>
+
+        <!-- Sidebar Level / XP Widget -->
+        <div id="sidebar-user-card" class="sidebar-user-widget hidden">
+          <div class="widget-avatar-wrap">
+            <div id="sidebar-avatar-preview" class="avatar-circle-sm"></div>
+            <div class="widget-user-info">
+              <div id="sidebar-display-name" class="widget-name">Cozy Friend</div>
+              <div id="sidebar-user-level" class="widget-sub">Level 1 · 0 XP</div>
+            </div>
+          </div>
+          <div class="xp-bar-bg">
+            <div id="sidebar-xp-progress" class="xp-bar-fill" style="width: 15%"></div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Scrollable Content Area -->
+      <main class="app-main-content" id="main-viewport">
+
+        <!-- ======================================================== -->
+        <!-- VIEW 1: HOME PAGE                                        -->
+        <!-- ======================================================== -->
+        <section id="view-home" class="page-view active">
+          <!-- Hero Section -->
+          <div class="home-hero-card">
+            <div class="hero-text-col">
+              <div class="hero-tagline-kicker">Find your people · Create your space</div>
+              <h1 class="hero-title">Make every day a little more cozy &amp; fun.</h1>
+              <p class="hero-desc">
+                Welcome to HANGOUT! Meet gentle friends, customize your cute avatar, join topic circles, and play <strong>PANG FOREVER ♡</strong> daily missions together.
+              </p>
+              <div class="hero-cta-row">
+                <button class="btn-primary" onclick="window.HangoutApp.navigateTo('discover')">Explore Communities</button>
+                <button class="btn-secondary" onclick="window.HangoutApp.navigateTo('pang')">Try PANG Mission ♡</button>
+              </div>
+              <div class="hero-metrics-strip">
+                <div class="metric-item">
+                  <span class="metric-val" id="kpi-users-count">142</span>
+                  <span class="metric-lbl">Cozy Members</span>
+                </div>
+                <span class="metric-divider">·</span>
+                <div class="metric-item">
+                  <span class="metric-val" id="kpi-groups-count">18</span>
+                  <span class="metric-lbl">Active Hangouts</span>
+                </div>
+                <span class="metric-divider">·</span>
+                <div class="metric-item">
+                  <span class="metric-val" id="kpi-tasks-count">480</span>
+                  <span class="metric-lbl">Missions Completed</span>
+                </div>
+              </div>
+            </div>
+            <div class="hero-media-col">
+              <img src="./assets/illustrations/hero_banner.jpg" alt="Cozy Hangout Friends Illustration" class="hero-banner-img" />
+            </div>
+          </div>
+
+          <!-- PANG FOREVER Spotlight Banner -->
+          <div class="home-pang-banner">
+            <div class="pang-banner-left">
+              <img src="./assets/illustrations/pang_forever.jpg" alt="Pang Forever" class="pang-thumb-img" />
+              <div>
+                <div class="pang-kicker">SIGNATURE RANDOM CHALLENGE</div>
+                <h2 class="pang-heading">PANG FOREVER ♡</h2>
+                <p class="pang-sub">Little missions. Little moments. Lots of fun. Get a surprise task today!</p>
+              </div>
+            </div>
+            <button class="btn-accent" onclick="window.HangoutApp.navigateTo('pang')">
+              <span>Open Mission Box</span>
+              <span class="arrow-icon">→</span>
+            </button>
+          </div>
+
+          <!-- Featured Communities Grid -->
+          <div class="section-container">
+            <div class="section-header-row">
+              <div>
+                <h2 class="section-title">Featured Cozy Communities</h2>
+                <p class="section-desc">Popular gathering spots to chat, share hobby photos, and relax.</p>
+              </div>
+              <a href="#discover" class="section-link-action">View all communities →</a>
+            </div>
+            <div id="home-featured-groups-grid" class="groups-grid">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Community Activity & Random Thoughts Preview -->
+          <div class="section-container">
+            <div class="section-header-row">
+              <div>
+                <h2 class="section-title">Recent Cozy Notes</h2>
+                <p class="section-desc">Gentle thoughts, questions, and sweet moments shared by members.</p>
+              </div>
+              <a href="#community" class="section-link-action">Join the conversation →</a>
+            </div>
+            <div id="home-recent-posts-list" class="posts-stream">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- VIEW 2: DISCOVER COMMUNITIES                             -->
+        <!-- ======================================================== -->
+        <section id="view-discover" class="page-view">
+          <div class="page-header-row">
+            <div>
+              <h1 class="page-title">Discover Communities</h1>
+              <p class="page-subtitle">Find rooms that match your vibe or start your very own safe space.</p>
+            </div>
+            <button id="btn-create-group-trigger" class="btn-primary">
+              <span>+ Create Group</span>
+            </button>
+          </div>
+
+          <!-- Category Segmented Filters -->
+          <div class="filter-bar" id="discover-categories">
+            <button class="filter-tab active" data-category="All">All Spaces</button>
+            <button class="filter-tab" data-category="General Hangout">General Hangout</button>
+            <button class="filter-tab" data-category="Study Buddies">Study Buddies</button>
+            <button class="filter-tab" data-category="Art and Creativity">Art &amp; Creativity</button>
+            <button class="filter-tab" data-category="Gaming">Gaming</button>
+            <button class="filter-tab" data-category="Music">Music</button>
+            <button class="filter-tab" data-category="Friendship">Friendship</button>
+            <button class="filter-tab" data-category="Books">Books</button>
+            <button class="filter-tab" data-category="Lifestyle">Lifestyle</button>
+          </div>
+
+          <!-- Groups Listing Grid -->
+          <div id="discover-groups-grid" class="groups-grid">
+            <!-- Dynamically populated -->
+          </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- VIEW 3: MY GROUPS & ACTIVE GROUP CHAT                    -->
+        <!-- ======================================================== -->
+        <section id="view-groups" class="page-view">
+          <!-- Sub-view A: Groups list -->
+          <div id="groups-list-container">
+            <div class="page-header-row">
+              <div>
+                <h1 class="page-title">My Groups</h1>
+                <p class="page-subtitle">Communities you belong to or moderate.</p>
+              </div>
+              <button class="btn-primary" onclick="window.HangoutApp.openCreateGroupModal()">+ Create Group</button>
+            </div>
+            <div id="my-groups-grid" class="groups-grid">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Sub-view B: Active Group Room & Real-time Chat -->
+          <div id="group-chat-room" class="group-chat-container hidden">
+            <!-- Chat Room Header -->
+            <div class="chat-header">
+              <button id="btn-back-to-groups" class="btn-icon-back" title="Back to Groups">←</button>
+              <div class="chat-header-info">
+                <div class="chat-title-row">
+                  <h2 id="chat-group-name" class="chat-title">The Cozy Tea Lounge</h2>
+                  <span id="chat-group-category" class="chat-category-badge">General Hangout</span>
+                </div>
+                <div class="chat-sub-info">
+                  <span id="chat-member-count">42 members</span>
+                  <span aria-hidden="true">·</span>
+                  <span id="chat-group-rules-preview">Be kind, respectful, and cozy ♡</span>
+                </div>
+              </div>
+              <div class="chat-header-actions">
+                <button id="btn-group-mission-shortcut" class="btn-subtle" title="Group Mission">♡ Group Mission</button>
+                <button id="btn-group-info-toggle" class="btn-icon-subtle" title="Group Details">ℹ️</button>
+              </div>
+            </div>
+
+            <!-- Pinned Announcement Banner if present -->
+            <div id="chat-pinned-banner" class="chat-pinned-bar hidden">
+              <span class="pinned-icon">📌</span>
+              <span id="chat-pinned-text" class="pinned-text">Welcome new members! Say hello and grab some virtual tea!</span>
+            </div>
+
+            <!-- Messages Stream -->
+            <div id="chat-messages-stream" class="chat-messages-area">
+              <!-- Dynamically populated -->
+            </div>
+
+            <!-- Typing indicator -->
+            <div id="chat-typing-indicator" class="chat-typing-status hidden">
+              <span id="typing-user-text">Someone is typing...</span>
+            </div>
+
+            <!-- Reply context banner -->
+            <div id="chat-reply-preview" class="chat-reply-bar hidden">
+              <div class="reply-bar-text">
+                <span class="reply-prefix">Replying to <strong id="reply-target-name">User</strong>:</span>
+                <span id="reply-target-content" class="reply-snippet"></span>
+              </div>
+              <button id="btn-cancel-reply" class="btn-icon-subtle">&times;</button>
+            </div>
+
+            <!-- Message Input Composer -->
+            <div class="chat-composer-wrap">
+              <button id="btn-chat-emoji" class="composer-icon-btn" title="Add emoji">😊</button>
+              <button id="btn-chat-image-prompt" class="composer-icon-btn" title="Attach image URL">📷</button>
+              <textarea id="chat-input-textarea" rows="1" placeholder="Type a cozy message..."></textarea>
+              <button id="btn-send-message" class="btn-primary-send" title="Send message">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Quick Emoji Palette Popup -->
+            <div id="chat-quick-emojis" class="emoji-picker-tray hidden">
+              <span class="emoji-opt">❤️</span>
+              <span class="emoji-opt">🌸</span>
+              <span class="emoji-opt">✨</span>
+              <span class="emoji-opt">☕</span>
+              <span class="emoji-opt">🍰</span>
+              <span class="emoji-opt">🍡</span>
+              <span class="emoji-opt">🧸</span>
+              <span class="emoji-opt">🐱</span>
+              <span class="emoji-opt">🌟</span>
+              <span class="emoji-opt">🎉</span>
+              <span class="emoji-opt">🧁</span>
+              <span class="emoji-opt">🌈</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- VIEW 4: PANG FOREVER ♡ (SIGNATURE TASK ENGINE)           -->
+        <!-- ======================================================== -->
+        <section id="view-pang" class="page-view">
+          <div class="pang-hero-header">
+            <div class="pang-header-badge">SIGNATURE FEATURE</div>
+            <h1 class="pang-main-title">PANG FOREVER ♡</h1>
+            <p class="pang-sub-title">Little missions. Little moments. Lots of fun.</p>
+            <p class="pang-desc">
+              Every day brings fresh, gentle missions to spark joy, connect with friends, and celebrate small achievements. Never stressful, always cozy!
+            </p>
+          </div>
+
+          <!-- PANG Navigation Tabs: Personal / Group Challenges / History / Leaderboard -->
+          <div class="segmented-control" id="pang-tabs">
+            <button class="seg-btn active" data-tab="personal">Personal Mission</button>
+            <button class="seg-btn" data-tab="group-challenges">Group Challenges</button>
+            <button class="seg-btn" data-tab="history">Mission History</button>
+            <button class="seg-btn" data-tab="leaderboard">Cozy Leaderboard</button>
+          </div>
+
+          <!-- TAB 1: Personal Mission Card -->
+          <div id="pang-tab-personal" class="pang-tab-content active">
+            <div class="mission-spotlight-card" id="active-mission-card">
+              <div class="mission-card-top">
+                <span class="mission-category-tag" id="mission-category">Friendship</span>
+                <div class="mission-xp-tag">
+                  <span class="star-icon">⭐</span>
+                  <span id="mission-xp-badge">+30 XP</span>
+                </div>
+              </div>
+              <h2 class="mission-card-title" id="mission-title">Send a Genuine Compliment</h2>
+              <p class="mission-card-desc" id="mission-desc">
+                Leave a heartfelt compliment on someone's post or send a gentle encouraging message to a friend.
+              </p>
+
+              <!-- Submission Form -->
+              <div class="mission-submission-box">
+                <label for="mission-answer-input" class="form-label">Your Cozy Response or Evidence (optional):</label>
+                <textarea id="mission-answer-input" rows="3" placeholder="Share what you did or write your answer here..."></textarea>
+                
+                <div class="mission-actions-row">
+                  <button id="btn-skip-mission" class="btn-subtle" title="Skip this task with no penalty">Skip Mission</button>
+                  <button id="btn-surprise-mission" class="btn-secondary" title="Roll a new random task">🎲 Surprise Me!</button>
+                  <button id="btn-complete-mission" class="btn-primary">✓ Complete &amp; Claim XP</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cozy Mission Tips & Zero-penalty reassurance -->
+            <div class="cozy-info-box">
+              <span class="info-icon">💡</span>
+              <p>
+                <strong>Gentle Reminder:</strong> Missions are completely optional! Skipping a mission carries zero penalty or score deduction. PANG FOREVER is here solely for smiles and sweet moments.
+              </p>
+            </div>
+          </div>
+
+          <!-- TAB 2: Group Challenges -->
+          <div id="pang-tab-group-challenges" class="pang-tab-content">
+            <div class="group-challenges-intro">
+              <h3>Collaborative Group Challenges</h3>
+              <p>Team up with your community members! Everyone adds a sentence or idea to finish missions together.</p>
+            </div>
+            <div id="group-missions-grid" class="missions-grid">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- TAB 3: Mission History -->
+          <div id="pang-tab-history" class="pang-tab-content">
+            <div id="mission-history-list" class="history-stream">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- TAB 4: Cozy Leaderboard -->
+          <div id="pang-tab-leaderboard" class="pang-tab-content">
+            <div class="leaderboard-card">
+              <div class="leaderboard-header">
+                <div>
+                  <h3 class="card-title">Cozy Friends Leaderboard</h3>
+                  <p class="card-sub">Members spreading kindness, joy, and completed missions.</p>
+                </div>
+                <div class="leaderboard-privacy-toggle">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-hide-leaderboard" />
+                    <span class="slider"></span>
+                  </label>
+                  <span class="toggle-label">Hide me from leaderboard</span>
+                </div>
+              </div>
+              <div id="leaderboard-table-container">
+                <!-- Dynamically populated table -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- VIEW 5: COMMUNITY SOCIAL FEED                            -->
+        <!-- ======================================================== -->
+        <section id="view-community" class="page-view">
+          <div class="page-header-row">
+            <div>
+              <h1 class="page-title">Community Feed</h1>
+              <p class="page-subtitle">Share gentle thoughts, cozy photos, and kind conversations.</p>
+            </div>
+            <button id="btn-open-create-post" class="btn-primary">+ Share a Thought</button>
+          </div>
+
+          <!-- Category Filter Bar -->
+          <div class="filter-bar" id="feed-categories">
+            <button class="filter-tab active" data-category="All">All Posts</button>
+            <button class="filter-tab" data-category="Random Thoughts">Random Thoughts</button>
+            <button class="filter-tab" data-category="Questions">Questions</button>
+            <button class="filter-tab" data-category="Creative Posts">Creative Posts</button>
+            <button class="filter-tab" data-category="Latest">Latest</button>
+            <button class="filter-tab" data-category="Trending">Trending</button>
+          </div>
+
+          <!-- Post Stream -->
+          <div id="community-posts-stream" class="posts-stream">
+            <!-- Dynamically populated -->
+          </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- VIEW 6: AVATAR STUDIO                                    -->
+        <!-- ======================================================== -->
+        <section id="view-avatar-studio" class="page-view">
+          <div class="page-header-row">
+            <div>
+              <h1 class="page-title">Avatar Studio ♡</h1>
+              <p class="page-subtitle">Design your cozy chibi persona! Choose cute hair, outfits, accessories, and colors.</p>
+            </div>
+            <button id="btn-save-avatar" class="btn-primary">Save &amp; Update Avatar</button>
+          </div>
+
+          <div class="avatar-studio-layout">
+            <!-- Left: Live Preview Canvas -->
+            <div class="studio-preview-col">
+              <div class="avatar-stage-card" id="avatar-preview-stage">
+                <div id="live-svg-avatar-container" class="live-avatar-render">
+                  <!-- Live SVG character rendered here -->
+                </div>
+              </div>
+              <div class="avatar-preview-controls">
+                <button id="btn-randomize-avatar" class="btn-secondary" title="Randomize Cute Look">🎲 Randomize</button>
+                <button id="btn-reset-avatar" class="btn-subtle" title="Reset to Default">↺ Reset</button>
+              </div>
+            </div>
+
+            <!-- Right: Customizer Palette Tabs -->
+            <div class="studio-palette-col">
+              <div class="segmented-control" id="avatar-layer-tabs">
+                <button class="seg-btn active" data-layer="hair">Hair</button>
+                <button class="seg-btn" data-layer="eyes">Eyes</button>
+                <button class="seg-btn" data-layer="clothes">Clothes</button>
+                <button class="seg-btn" data-layer="accessory">Accessory</button>
+                <button class="seg-btn" data-layer="skin">Skin</button>
+                <button class="seg-btn" data-layer="bg">Background</button>
+              </div>
+
+              <!-- Options Grid for currently active layer -->
+              <div id="avatar-options-grid" class="avatar-options-grid">
+                <!-- Populated dynamically based on selected layer -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- VIEW 7: PRIVATE MESSAGES & FRIENDS                       -->
+        <!-- ======================================================== -->
+        <section id="view-messages" class="page-view">
+          <div class="dm-container">
+            <!-- Left sidebar: Conversations list -->
+            <div class="dm-sidebar">
+              <div class="dm-sidebar-header">
+                <h2>Direct Messages</h2>
+                <button id="btn-new-dm" class="btn-icon-subtle" title="New Message">✏️</button>
+              </div>
+              <div id="conversations-list" class="conversations-list">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <!-- Right side: Active Conversation -->
+            <div class="dm-chat-area" id="dm-active-chat">
+              <div class="dm-empty-state" id="dm-no-convo-state">
+                <span class="empty-icon">💌</span>
+                <h3>Select a conversation</h3>
+                <p>Chat privately with your cozy friends or start a new conversation.</p>
+              </div>
+
+              <div id="dm-chat-content" class="dm-chat-wrap hidden">
+                <div class="chat-header">
+                  <div class="chat-header-info">
+                    <h2 id="dm-recipient-name" class="chat-title">Friend</h2>
+                    <span id="dm-recipient-status" class="online-status-text">Online</span>
+                  </div>
+                </div>
+                <div id="dm-messages-stream" class="chat-messages-area">
+                  <!-- Dynamically populated -->
+                </div>
+                <div class="chat-composer-wrap">
+                  <textarea id="dm-input-textarea" rows="1" placeholder="Write a private message..."></textarea>
+                  <button id="btn-send-dm" class="btn-primary-send" title="Send message">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <line x1="22" y1="2" x2="11" y2="13"></line>
+                      <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- VIEW 8: FRIENDS LIST & REQUESTS                          -->
+        <!-- ======================================================== -->
+        <section id="view-friends" class="page-view">
+          <div class="page-header-row">
+            <div>
+              <h1 class="page-title">Friends Hub</h1>
+              <p class="page-subtitle">Connect with warm-hearted people across HANGOUT.</p>
+            </div>
+            <div class="add-friend-bar">
+              <input type="text" id="add-friend-username-input" placeholder="Enter username (e.g. mochibun)" />
+              <button id="btn-send-friend-req" class="btn-primary">Add Friend</button>
+            </div>
+          </div>
+
+          <div class="segmented-control" id="friends-tabs">
+            <button class="seg-btn active" data-tab="all-friends">All Friends (<span id="friends-count-num">0</span>)</button>
+            <button class="seg-btn" data-tab="pending-requests">Requests (<span id="requests-count-num">0</span>)</button>
+          </div>
+
+          <div id="friends-tab-all" class="friends-grid-content active">
+            <div id="friends-card-grid" class="friends-grid">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <div id="friends-tab-requests" class="friends-grid-content">
+            <div id="friend-requests-list" class="requests-stream">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- VIEW 9: MY PROFILE                                       -->
+        <!-- ======================================================== -->
+        <section id="view-profile" class="page-view">
+          <div class="profile-header-card">
+            <div class="profile-cover-banner" id="profile-cover-display"></div>
+            <div class="profile-info-row">
+              <div class="profile-avatar-anchor">
+                <div id="profile-avatar-display" class="profile-avatar-circle"></div>
+              </div>
+              <div class="profile-meta-details">
+                <h1 id="profile-display-name-text" class="profile-name">Cozy Friend</h1>
+                <div id="profile-username-text" class="profile-handle">@friend</div>
+                <p id="profile-bio-text" class="profile-bio">Hello! I just joined HANGOUT ♡ Let's be friends!</p>
+              </div>
+              <div class="profile-actions-col">
+                <button id="btn-open-edit-profile" class="btn-secondary">Edit Profile</button>
+                <button class="btn-subtle" onclick="window.HangoutApp.navigateTo('avatar-studio')">Avatar Studio</button>
+              </div>
+            </div>
+
+            <!-- Gamification & XP Progress Strip -->
+            <div class="profile-stats-strip">
+              <div class="pstat-item">
+                <span class="pstat-num" id="profile-level-num">Level 1</span>
+                <span class="pstat-lbl">Community Rank</span>
+              </div>
+              <span class="metric-divider">·</span>
+              <div class="pstat-item">
+                <span class="pstat-num" id="profile-xp-num">0 XP</span>
+                <span class="pstat-lbl">Experience Points</span>
+              </div>
+              <span class="metric-divider">·</span>
+              <div class="pstat-item">
+                <span class="pstat-num" id="profile-fp-num">0</span>
+                <span class="pstat-lbl">Friendship Points</span>
+              </div>
+              <span class="metric-divider">·</span>
+              <div class="pstat-item">
+                <span class="pstat-num" id="profile-tasks-done-num">0</span>
+                <span class="pstat-lbl">Completed Missions</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Badges & Achievements Shelf -->
+          <div class="section-container">
+            <h2 class="section-title">Unlocked Badges &amp; Charms</h2>
+            <div id="profile-badges-shelf" class="badges-shelf-grid">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- VIEW 10: SETTINGS                                        -->
+        <!-- ======================================================== -->
+        <section id="view-settings" class="page-view">
+          <div class="page-header-row">
+            <div>
+              <h1 class="page-title">Settings</h1>
+              <p class="page-subtitle">Preferences, theme, and Supabase backend status.</p>
+            </div>
+          </div>
+
+          <div class="settings-cards-col">
+            <!-- Card: Theme & Appearance -->
+            <div class="settings-card">
+              <h3 class="settings-card-title">Theme &amp; Appearance</h3>
+              <p class="settings-card-desc">Choose between a sunny pastel daylight aesthetic or a cozy midnight glow.</p>
+              <div class="theme-selection-row">
+                <button class="theme-choice-btn active" id="btn-theme-light">☀️ Daylight Pastel</button>
+                <button class="theme-choice-btn" id="btn-theme-dark">🌙 Cozy Midnight</button>
+              </div>
+            </div>
+
+            <!-- Card: Supabase Backend Connection Setup -->
+            <div class="settings-card">
+              <div class="card-header-with-badge">
+                <h3 class="settings-card-title">Supabase Backend Connection</h3>
+                <span id="supabase-status-pill" class="pill-indicator offline">Status: Disconnected</span>
+              </div>
+              <p class="settings-card-desc">
+                Configure your Supabase project to enable persistent accounts, real-time messaging, and database security rules.
+              </p>
+              
+              <div class="form-group">
+                <label class="form-label" for="cfg-supabase-url">Supabase Project URL</label>
+                <input type="text" id="cfg-supabase-url" placeholder="https://YOUR_PROJECT_ID.supabase.co" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="cfg-supabase-anon">Supabase Anon Public Key</label>
+                <input type="password" id="cfg-supabase-anon" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..." />
+              </div>
+
+              <div class="btn-row">
+                <button id="btn-save-supabase-config" class="btn-primary">Save &amp; Connect</button>
+                <button id="btn-test-supabase-connection" class="btn-secondary">Test Connection</button>
+                <button id="btn-clear-supabase-config" class="btn-subtle">Reset to Demo</button>
+              </div>
+
+              <div id="supabase-test-results" class="connection-status-box hidden"></div>
+            </div>
+
+            <!-- Card: Privacy & Notifications -->
+            <div class="settings-card">
+              <h3 class="settings-card-title">Preferences &amp; Privacy</h3>
+              <div class="setting-toggle-row">
+                <div>
+                  <div class="toggle-title">Sound Effects</div>
+                  <div class="toggle-desc">Play soft cozy chimes on task completion and messages.</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="pref-sound-effects" checked />
+                  <span class="slider"></span>
+                </label>
+              </div>
+              <div class="setting-toggle-row">
+                <div>
+                  <div class="toggle-title">Direct Messages from Everyone</div>
+                  <div class="toggle-desc">Allow members outside your friends list to send private DMs.</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="pref-allow-dms" checked />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Card: Account Danger Zone -->
+            <div class="settings-card border-danger">
+              <h3 class="settings-card-title text-danger">Account Actions</h3>
+              <div class="danger-row">
+                <button id="btn-logout-settings" class="btn-subtle text-danger">Log Out of HANGOUT</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- VIEW 11: OWNER-ONLY ADMIN DASHBOARD                      -->
+        <!-- ======================================================== -->
+        <section id="view-admin" class="page-view">
+          <div class="admin-top-banner">
+            <div>
+              <div class="admin-badge-label">OWNER DASHBOARD</div>
+              <h1 class="page-title">Website Management &amp; Registrations</h1>
+              <p class="page-subtitle">Real-time statistics, member management, website content editor, and task templates.</p>
+            </div>
+            <div class="admin-realtime-indicator">
+              <span class="status-dot status-online"></span>
+              <span class="realtime-text">Realtime Live</span>
+            </div>
+          </div>
+
+          <!-- Admin Navigation Tabs -->
+          <div class="segmented-control" id="admin-tabs">
+            <button class="seg-btn active" data-tab="admin-overview">Overview</button>
+            <button class="seg-btn" data-tab="admin-registrations">
+              Registrations <span id="admin-reg-badge" class="badge-count hidden">0</span>
+            </button>
+            <button class="seg-btn" data-tab="admin-users">User Management</button>
+            <button class="seg-btn" data-tab="admin-website">Website Editor</button>
+            <button class="seg-btn" data-tab="admin-tasks">Task Editor</button>
+            <button class="seg-btn" data-tab="admin-moderation">Moderation</button>
+          </div>
+
+          <!-- ADMIN TAB 1: Real Database Statistics Overview -->
+          <div id="admin-tab-admin-overview" class="admin-tab-content active">
+            <div class="kpi-cards-grid">
+              <div class="kpi-card">
+                <span class="kpi-icon">👥</span>
+                <div class="kpi-num" id="adm-kpi-total-users">142</div>
+                <div class="kpi-title">Total Registered Users</div>
+              </div>
+              <div class="kpi-card">
+                <span class="kpi-icon">🎉</span>
+                <div class="kpi-num" id="adm-kpi-today-users">6</div>
+                <div class="kpi-title">New Registrations Today</div>
+              </div>
+              <div class="kpi-card">
+                <span class="kpi-icon">🍡</span>
+                <div class="kpi-num" id="adm-kpi-total-groups">18</div>
+                <div class="kpi-title">Total Groups</div>
+              </div>
+              <div class="kpi-card">
+                <span class="kpi-icon">💬</span>
+                <div class="kpi-num" id="adm-kpi-total-msgs">2,410</div>
+                <div class="kpi-title">Total Messages</div>
+              </div>
+              <div class="kpi-card">
+                <span class="kpi-icon">📝</span>
+                <div class="kpi-num" id="adm-kpi-total-posts">194</div>
+                <div class="kpi-title">Community Posts</div>
+              </div>
+              <div class="kpi-card">
+                <span class="kpi-icon">⭐</span>
+                <div class="kpi-num" id="adm-kpi-completed-tasks">480</div>
+                <div class="kpi-title">Completed Missions</div>
+              </div>
+            </div>
+
+            <!-- Quick Registration Alerts Stream -->
+            <div class="admin-recent-box">
+              <div class="section-header-row">
+                <h3>Latest Registration Alerts</h3>
+                <button class="btn-subtle" onclick="window.HangoutApp.switchAdminTab('admin-registrations')">View All Notifications →</button>
+              </div>
+              <div id="admin-overview-reg-alerts" class="alerts-stream">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+
+          <!-- ADMIN TAB 2: Registration Notifications (HIGH PRIORITY) -->
+          <div id="admin-tab-admin-registrations" class="admin-tab-content">
+            <div class="admin-section-header">
+              <div>
+                <h2>Registration Notifications</h2>
+                <p>Real-time notifications whenever a new member registers on HANGOUT.</p>
+              </div>
+              <div class="admin-actions-group">
+                <button id="btn-export-reg-csv" class="btn-secondary">Export CSV</button>
+                <button id="btn-mark-all-read" class="btn-subtle">Mark All Read</button>
+              </div>
+            </div>
+
+            <!-- Search and Filter Bar -->
+            <div class="admin-filter-bar">
+              <input type="text" id="admin-reg-search" placeholder="Search by name, username, or email..." />
+              <select id="admin-reg-status-filter" class="form-select">
+                <option value="all">All Registrations</option>
+                <option value="unread">Unread Only</option>
+                <option value="today">Today Only</option>
+              </select>
+            </div>
+
+            <!-- Registration Notifications Cards List -->
+            <div id="admin-registration-notifications-list" class="registration-alerts-grid">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- ADMIN TAB 3: User Management -->
+          <div id="admin-tab-admin-users" class="admin-tab-content">
+            <div class="admin-section-header">
+              <div>
+                <h2>User Management</h2>
+                <p>View registered accounts, verify status, and manage access.</p>
+              </div>
+              <input type="text" id="admin-users-search" placeholder="Search members by username or display name..." />
+            </div>
+
+            <div class="table-container">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Member</th>
+                    <th>Email</th>
+                    <th>Joined</th>
+                    <th>XP / Level</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-users-table-body">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ADMIN TAB 4: Website Content Editor -->
+          <div id="admin-tab-admin-website" class="admin-tab-content">
+            <div class="admin-section-header">
+              <div>
+                <h2>Website Content Editor</h2>
+                <p>Customize copy, announcements, and community guidelines without touching source code.</p>
+              </div>
+              <button id="btn-save-website-settings" class="btn-primary">Publish to Supabase</button>
+            </div>
+
+            <div class="editor-grid">
+              <div class="editor-card">
+                <h3>Branding &amp; Tagline</h3>
+                <div class="form-group">
+                  <label class="form-label" for="edit-site-name">Website Name</label>
+                  <input type="text" id="edit-site-name" value="HANGOUT" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="edit-site-tagline">Tagline</label>
+                  <input type="text" id="edit-site-tagline" value="Find your people. Create your space. Make every day a little more fun." />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="edit-welcome-msg">Homepage Welcome Message</label>
+                  <textarea id="edit-welcome-msg" rows="3">Welcome to HANGOUT! A cozy corner of the internet where cute avatars, friendly group chats, and playful missions come together ♡</textarea>
+                </div>
+              </div>
+
+              <div class="editor-card">
+                <h3>Announcement Banner</h3>
+                <div class="form-group">
+                  <label class="form-label" for="edit-announcement-text">Top Banner Text</label>
+                  <textarea id="edit-announcement-text" rows="3">🌸 PANG FOREVER Spring Challenge is live! Complete missions to earn the cozy floral badge!</textarea>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="edit-community-rules">Community Rules (One per line)</label>
+                  <textarea id="edit-community-rules" rows="5">1. Be kind, welcoming, and inclusive to everyone.
+2. Respect privacy: never share private messages or personal details.
+3. Keep all community spaces cozy and safe for all ages.
+4. No spamming, harmful links, or unsolicited advertising.
+5. Have fun, celebrate small wins, and share gentle vibes!</textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ADMIN TAB 5: Task Editor (PANG FOREVER) -->
+          <div id="admin-tab-admin-tasks" class="admin-tab-content">
+            <div class="admin-section-header">
+              <div>
+                <h2>PANG FOREVER Task Editor</h2>
+                <p>Manage the library of random missions, XP rewards, and categories.</p>
+              </div>
+              <button id="btn-open-create-task-modal" class="btn-primary">+ Add New Task</button>
+            </div>
+
+            <div class="table-container">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Title &amp; Description</th>
+                    <th>Category</th>
+                    <th>Type</th>
+                    <th>XP Reward</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-tasks-table-body">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ADMIN TAB 6: Moderation Center -->
+          <div id="admin-tab-admin-moderation" class="admin-tab-content">
+            <div class="admin-section-header">
+              <div>
+                <h2>Moderation Center</h2>
+                <p>Review community reports and handle flagged posts or messages.</p>
+              </div>
+            </div>
+            <div id="admin-reports-stream" class="reports-stream">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+      <a href="#home" class="mobile-nav-link active" data-view="home">
+        <span class="mob-icon">🏡</span>
+        <span class="mob-label">Home</span>
+      </a>
+      <a href="#discover" class="mobile-nav-link" data-view="discover">
+        <span class="mob-icon">🧭</span>
+        <span class="mob-label">Discover</span>
+      </a>
+      <a href="#pang" class="mobile-nav-link highlight" data-view="pang">
+        <span class="mob-icon">♡</span>
+        <span class="mob-label">Pang</span>
+      </a>
+      <a href="#messages" class="mobile-nav-link" data-view="messages">
+        <span class="mob-icon">💌</span>
+        <span class="mob-label">DMs</span>
+      </a>
+      <a href="#profile" class="mobile-nav-link" data-view="profile">
+        <span class="mob-icon">🧸</span>
+        <span class="mob-label">Profile</span>
+      </a>
+    </nav>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODALS & DIALOGS                                         -->
+  <!-- ======================================================== -->
+
+  <!-- AUTH MODAL: Registration / Login / Password Reset -->
+  <div id="modal-auth" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <img src="./assets/logo/hangout_logo.jpg" alt="Logo" class="modal-logo" />
+          <h2 id="auth-modal-title" class="modal-title">Welcome to HANGOUT ♡</h2>
+        </div>
+        <button class="btn-modal-close" onclick="window.HangoutApp.closeAuthModal()">&times;</button>
+      </div>
+
+      <!-- Auth Tabs: Login vs Register -->
+      <div class="segmented-control" id="auth-tabs">
+        <button class="seg-btn active" data-auth-tab="login">Log In</button>
+        <button class="seg-btn" data-auth-tab="register">Create Account</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <form id="form-login" class="auth-form active">
+        <div class="form-group">
+          <label class="form-label" for="login-email">Email Address</label>
+          <input type="email" id="login-email" required placeholder="you@example.com" autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="login-password">Password</label>
+          <input type="password" id="login-password" required placeholder="••••••••" autocomplete="current-password" />
+        </div>
+        <div class="auth-aux-row">
+          <button type="button" id="btn-forgot-password" class="btn-link">Forgot password?</button>
+        </div>
+        <button type="submit" class="btn-primary-block">Log In to HANGOUT</button>
+      </form>
+
+      <!-- REGISTER FORM -->
+      <form id="form-register" class="auth-form hidden">
+        <div class="form-group">
+          <label class="form-label" for="reg-display-name">Display Name</label>
+          <input type="text" id="reg-display-name" required placeholder="Mochi Bun" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="reg-username">Unique Username</label>
+          <div class="input-prefix-wrap">
+            <span class="input-prefix">@</span>
+            <input type="text" id="reg-username" required placeholder="mochibun" pattern="^[a-zA-Z0-9_]{3,20}$" title="3-20 letters, numbers, or underscores" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="reg-email">Email Address</label>
+          <input type="email" id="reg-email" required placeholder="user@example.com" autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="reg-password">Password</label>
+          <input type="password" id="reg-password" required minlength="6" placeholder="At least 6 characters" autocomplete="new-password" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="reg-confirm-password">Confirm Password</label>
+          <input type="password" id="reg-confirm-password" required minlength="6" placeholder="Re-enter password" autocomplete="new-password" />
+        </div>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="reg-terms-check" required />
+          <label for="reg-terms-check">I am at least 13 years old and agree to HANGOUT's Terms &amp; Privacy Policy.</label>
+        </div>
+
+        <button type="submit" class="btn-primary-block">Create Cozy Account</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- CREATE GROUP MODAL -->
+  <div id="modal-create-group" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">Create a New Hangout Circle</h2>
+        <button class="btn-modal-close" onclick="window.HangoutApp.closeCreateGroupModal()">&times;</button>
+      </div>
+      <form id="form-create-group">
+        <div class="form-group">
+          <label class="form-label" for="grp-name">Group Name</label>
+          <input type="text" id="grp-name" required placeholder="e.g. Midnight Lo-Fi Artists" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="grp-desc">Description</label>
+          <textarea id="grp-desc" rows="3" placeholder="What will your group chat and do together?"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="grp-category">Category</label>
+          <select id="grp-category" class="form-select" required>
+            <option value="General Hangout">General Hangout</option>
+            <option value="Study Buddies">Study Buddies</option>
+            <option value="Art and Creativity">Art and Creativity</option>
+            <option value="Gaming">Gaming</option>
+            <option value="Music">Music</option>
+            <option value="Friendship">Friendship</option>
+            <option value="Books">Books</option>
+            <option value="Lifestyle">Lifestyle</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="grp-rules">Group Rules</label>
+          <input type="text" id="grp-rules" value="Be kind, respectful, and cozy ♡" />
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="grp-is-private" />
+          <label for="grp-is-private">Private Group (invitation or approval required)</label>
+        </div>
+        <button type="submit" class="btn-primary-block">Launch Group</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- CREATE POST MODAL -->
+  <div id="modal-create-post" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">Share a Cozy Thought</h2>
+        <button class="btn-modal-close" onclick="window.HangoutApp.closeCreatePostModal()">&times;</button>
+      </div>
+      <form id="form-create-post">
+        <div class="form-group">
+          <label class="form-label" for="post-category">Category</label>
+          <select id="post-category" class="form-select">
+            <option value="Random Thoughts">Random Thoughts</option>
+            <option value="Questions">Questions</option>
+            <option value="Creative Posts">Creative Posts</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="post-content">Message</label>
+          <textarea id="post-content" rows="4" required placeholder="What's on your mind today?"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="post-img-url">Image URL (optional)</label>
+          <input type="url" id="post-img-url" placeholder="https://example.com/cozy-photo.jpg" />
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="post-is-anon" />
+          <label for="post-is-anon">Post as Gentle Anonymous</label>
+        </div>
+        <button type="submit" class="btn-primary-block">Publish Note</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- EDIT PROFILE MODAL -->
+  <div id="modal-edit-profile" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">Edit Profile</h2>
+        <button class="btn-modal-close" onclick="window.HangoutApp.closeEditProfileModal()">&times;</button>
+      </div>
+      <form id="form-edit-profile">
+        <div class="form-group">
+          <label class="form-label" for="edit-profile-display-name">Display Name</label>
+          <input type="text" id="edit-profile-display-name" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="edit-profile-bio">Bio</label>
+          <textarea id="edit-profile-bio" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn-primary-block">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ADD TASK TEMPLATE MODAL (ADMIN ONLY) -->
+  <div id="modal-create-task" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">Add PANG FOREVER Mission Template</h2>
+        <button class="btn-modal-close" onclick="window.HangoutApp.closeCreateTaskModal()">&times;</button>
+      </div>
+      <form id="form-create-task">
+        <div class="form-group">
+          <label class="form-label" for="task-tpl-title">Mission Title</label>
+          <input type="text" id="task-tpl-title" required placeholder="e.g. Share Your Favorite Childhood Snack" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="task-tpl-desc">Description</label>
+          <textarea id="task-tpl-desc" rows="3" required placeholder="Detailed mission prompt instructions..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="task-tpl-category">Category</label>
+          <select id="task-tpl-category" class="form-select">
+            <option value="Personal">Personal</option>
+            <option value="Friendship">Friendship</option>
+            <option value="Group Challenges">Group Challenges</option>
+            <option value="Creative">Creative</option>
+            <option value="Funny Random Tasks">Funny Random Tasks</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="task-tpl-xp">XP Reward</label>
+          <input type="number" id="task-tpl-xp" value="30" min="5" max="200" required />
+        </div>
+        <button type="submit" class="btn-primary-block">Save Mission Template</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- User Notifications Drawer -->
+  <div id="user-notifications-drawer" class="notifications-drawer hidden">
+    <div class="drawer-header">
+      <h3>Notifications</h3>
+      <button class="btn-icon-subtle" onclick="window.HangoutApp.toggleNotificationsDrawer()">&times;</button>
+    </div>
+    <div id="user-notifications-stream" class="drawer-stream">
+      <!-- Dynamically populated -->
+    </div>
+  </div>
+
+  <!-- Mission Celebration Confetti Dialog -->
+  <div id="celebration-overlay" class="celebration-overlay hidden">
+    <div class="celebration-card">
+      <span class="celebration-sparkle">🎉</span>
+      <h2 class="celebration-title">Mission Complete! ♡</h2>
+      <p id="celebration-xp-text" class="celebration-xp">+30 XP Earned</p>
+      <p class="celebration-sub">You are making HANGOUT brighter and warmer every day!</p>
+      <button class="btn-primary" onclick="window.HangoutApp.closeCelebration()">Yay! Continue</button>
+    </div>
+  </div>
+
+  <!-- Application Logic & Scripts -->
+  <script src="./supabase-config.js"></script>
+  <script src="./script.js"></script>
+</body>
+</html>
